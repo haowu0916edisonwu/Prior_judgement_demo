@@ -1,0 +1,6 @@
+data_care/
+results/
+*.pyc
+__pycache__/
+.cache/
+*.log
