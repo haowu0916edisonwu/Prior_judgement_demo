@@ -1,0 +1,48 @@
+{
+  "nq": {
+    "metrics": {
+      "span_em": 0.40914127423822716
+    },
+    "mode_distribution": {
+      "rag": 2206,
+      "closedbook": 1404
+    }
+  },
+  "trivia": {
+    "metrics": {
+      "span_em": 0.7012286749756916
+    },
+    "mode_distribution": {
+      "rag": 8214,
+      "closedbook": 3099
+    }
+  },
+  "webqa": {
+    "metrics": {
+      "span_em": 0.3690944881889764
+    },
+    "mode_distribution": {
+      "rag": 1569,
+      "closedbook": 463
+    }
+  },
+  "truthfulqa": {
+    "metrics": {
+      "f1": 0.1975736114000535,
+      "rouge_l": 0.19086950320039964
+    },
+    "mode_distribution": {
+      "rag": 359,
+      "closedbook": 458
+    }
+  },
+  "factkg": {
+    "metrics": {
+      "accuracy": 0.5695166463886738
+    },
+    "mode_distribution": {
+      "rag": 1508,
+      "closedbook": 7533
+    }
+  }
+}

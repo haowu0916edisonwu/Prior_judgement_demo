@@ -1,118 +1,103 @@
 #!/usr/bin/env python3
 """
-测试数据加载器 - 使用上传的真实数据
+测试数据加载器 - 使用项目真实数据
 """
 
 import sys
-import json
 from pathlib import Path
 
-# 模拟数据加载器
-class Sample:
-    def __init__(self, id, question, answers, top1_context, dataset):
-        self.id = id
-        self.question = question
-        self.answers = answers
-        self.top1_context = top1_context
-        self.dataset = dataset
-
-
-def extract_document_text(raw_text: str) -> str:
-    """提取 Document 部分"""
-    import re
-    
-    # 方法 1: 正则表达式
-    match = re.search(r'Document:\s*(.*)', raw_text, re.DOTALL)
-    if match:
-        return match.group(1).strip()
-    
-    # 方法 2: 分割
-    if 'Question:' in raw_text:
-        parts = raw_text.split('Document:', 1)
-        if len(parts) > 1:
-            return parts[1].strip()
-        parts = raw_text.split('\n', 1)
-        if len(parts) > 1:
-            return parts[1].strip()
-    
-    return raw_text.strip()
+# 导入项目的数据加载器
+from src.data_loader import CAREDataLoader
 
 
 def test_data_loading():
     """测试数据加载"""
     
     print("=" * 70)
-    print("🧪 Testing Data Loading with Real Data")
+    print("🧪 测试数据加载 - 使用项目数据")
     print("=" * 70)
     
-    # 文件路径
-    question_file = "/mnt/user-data/uploads/test.jsonl"
-    retrieval_file = "/mnt/user-data/uploads/test_question_aware.jsonl"
+    # 创建数据加载器（使用项目默认路径）
+    loader = CAREDataLoader(data_root="data_care/eval", verbose=True)
     
-    # 加载第一行
-    with open(question_file) as f:
-        q = json.loads(f.readline())
-    
-    with open(retrieval_file) as f:
-        r = json.loads(f.readline())
-    
-    print("\n📝 Question Format:")
-    print(f"  Keys: {list(q.keys())}")
-    print(f"  ID: {q.get('id')}")
-    print(f"  Question: {q.get('question')}")
-    print(f"  Answer field name: {'answer' if 'answer' in q else 'answers'}")
-    print(f"  Answers: {q.get('answer', q.get('answers', []))}")
-    
-    print("\n🔎 Retrieval Format:")
-    print(f"  Keys: {list(r.keys())}")
-    print(f"  ID: {r.get('id')}")
-    print(f"  Context field name: {'topk' if 'topk' in r else 'ctxs'}")
-    print(f"  Number of contexts: {len(r.get('topk', r.get('ctxs', [])))}")
-    
-    # 提取 Top-1
-    if r.get('topk'):
-        raw_text = r['topk'][0]['text']
-        extracted = extract_document_text(raw_text)
-        
-        print(f"\n✅ Top-1 Context Processing:")
-        print(f"  Raw text (first 300 chars):")
-        print(f"    {raw_text[:300]}...")
-        print(f"\n  Extracted document (first 300 chars):")
-        print(f"    {extracted[:300]}...")
-        print(f"\n  Extracted length: {len(extracted)} chars")
-    
-    # 验证 ID 匹配
-    print(f"\n🔗 ID Matching:")
-    q_id = str(q.get('id'))
-    r_id = str(r.get('id'))
-    match = "✅" if q_id == r_id else "❌"
-    print(f"  Question ID: {q_id}")
-    print(f"  Retrieval ID: {r_id}")
-    print(f"  Match: {match}")
-    
-    # 创建样本
-    answers = q.get('answer', q.get('answers', []))
-    if not isinstance(answers, list):
-        answers = [str(answers)]
-    
-    sample = Sample(
-        id=q_id,
-        question=q.get('question', ''),
-        answers=answers,
-        top1_context=extract_document_text(r['topk'][0]['text']) if r.get('topk') else '',
-        dataset='nq'
-    )
-    
-    print(f"\n📦 Created Sample:")
-    print(f"  ID: {sample.id}")
-    print(f"  Question: {sample.question}")
-    print(f"  Answers: {sample.answers}")
-    print(f"  Context length: {len(sample.top1_context)}")
+    # 测试所有数据集
+    datasets = ['nq', 'triviaqa', 'webqa', 'truthfulqa', 'factkg']
     
     print("\n" + "=" * 70)
-    print("✅ Test Passed! Data format understood correctly.")
+    print("📊 测试所有数据集")
     print("=" * 70)
+    
+    results = {}
+    
+    for dataset in datasets:
+        print(f"\n{'='*70}")
+        print(f"🔍 测试 {dataset.upper()}")
+        print(f"{'='*70}")
+        
+        try:
+            # 加载数据集（只加载前5个样本用于测试）
+            samples = loader.load_dataset(dataset)
+            
+            if samples and len(samples) > 0:
+                # 显示第一个样本的详细信息
+                sample = samples[0]
+                
+                print(f"\n📦 第一个样本详情:")
+                print(f"  ID: {sample.id}")
+                print(f"  Question: {sample.question[:80]}...")
+                print(f"  Answers: {sample.answers}")
+                print(f"  Context length: {len(sample.top1_context)} chars")
+                print(f"  Context preview: {sample.top1_context[:150]}...")
+                
+                results[dataset] = {
+                    'status': '✅ 成功',
+                    'samples': len(samples),
+                    'first_sample': {
+                        'id': sample.id,
+                        'question': sample.question[:50],
+                        'answers': sample.answers,
+                        'context_length': len(sample.top1_context)
+                    }
+                }
+                
+                print(f"\n✅ 成功加载 {len(samples)} 个样本")
+                
+            else:
+                results[dataset] = {'status': '❌ 失败', 'error': '未加载到样本'}
+                print(f"❌ 未加载到样本")
+                
+        except Exception as e:
+            results[dataset] = {'status': '❌ 失败', 'error': str(e)}
+            print(f"❌ 加载失败: {e}")
+    
+    # 显示汇总
+    print("\n" + "=" * 70)
+    print("📊 测试汇总")
+    print("=" * 70)
+    
+    success_count = 0
+    for dataset, result in results.items():
+        status = result['status']
+        if '✅' in status:
+            success_count += 1
+            samples = result.get('samples', 0)
+            print(f"{dataset:12s} {status:8s} - {samples:>5} samples")
+        else:
+            error = result.get('error', 'Unknown error')
+            print(f"{dataset:12s} {status:8s} - {error}")
+    
+    print("\n" + "=" * 70)
+    
+    if success_count == len(datasets):
+        print("✅ 所有测试通过！数据加载器工作正常。")
+    else:
+        print(f"⚠️  {success_count}/{len(datasets)} 个数据集测试通过")
+    
+    print("=" * 70)
+    
+    return success_count == len(datasets)
 
 
 if __name__ == "__main__":
-    test_data_loading()
+    success = test_data_loading()
+    sys.exit(0 if success else 1)

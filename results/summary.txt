@@ -1,0 +1,21 @@
+PRIORI JUDGMENT EVALUATION RESULTS
+======================================================================
+
+NQ
+  SPAN_EM: 0.4091
+
+TRIVIA
+  SPAN_EM: 0.7012
+
+WEBQA
+  SPAN_EM: 0.3691
+
+TRUTHFULQA
+  F1: 0.1976
+  ROUGE_L: 0.1909
+
+FACTKG
+  ACCURACY: 0.5695
+
+AVERAGE: 0.4493
+

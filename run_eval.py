@@ -58,32 +58,52 @@ def debug_single_sample(data_loader, evaluator, dataset):
     print("=" * 70)
 
 
-def save_predictions(results, output_dir, dataset_name):
-    """保存详细预测结果"""
-    output_file = output_dir / f"{dataset_name}_predictions.jsonl"
-    
+def save_predictions(results, output_dir, dataset):
+    """保存详细的预测结果 (修复版)"""
+    # 兼容处理：无论 output_dir 是字符串还是 Path 对象都能跑
+    filename = f"{dataset}_predictions.jsonl"
+    if hasattr(output_dir, 'joinpath'): # 如果是 Path 对象
+        output_file = output_dir / filename
+    else: # 如果是字符串
+        output_file = os.path.join(output_dir, filename)
+
+    print(f"正在保存详细预测到: {output_file}")
+
     with open(output_file, 'w', encoding='utf-8') as f:
         for r in results:
-            # 计算是否正确
-            if r.task_type == "fact_checking":
-                correct = Metrics.compute_accuracy(r.prediction, r.gold_answers) == 1.0
-            elif r.task_type == "long_form":
-                correct = Metrics.compute_f1(r.prediction, r.gold_answers) > 0.5
-            else:
-                correct = Metrics.compute_span_em(r.prediction, r.gold_answers) == 1.0
-            
+            # 1. 基础字段
             pred_data = {
-                'id': r.id,
-                'question': r.question,
-                'prediction': r.prediction,
-                'gold_answers': r.gold_answers,
-                'mode': r.mode,
-                'priori_output': r.priori_output,
-                'correct': correct
+                'id': getattr(r, 'id', 'unknown_id'),
+                'question': getattr(r, 'question', ''),
+                'prediction': getattr(r, 'prediction', ''),
+                'gold_answers': getattr(r, 'gold_answers', []),
+                'mode': getattr(r, 'mode', 'unknown'),
+                'priori_output': getattr(r, 'priori_output', None),
             }
+
+            # 2. 智能推断 Task Type (Claude 的逻辑)
+            # 先尝试直接读取 task_type，读不到再尝试推断
+            task_type = getattr(r, 'task_type', None)
+            
+            # 如果没有 task_type，尝试通过答案推断
+            if not task_type:
+                gold = getattr(r, 'gold_answers', [])
+                if len(gold) == 1 and str(gold[0]).lower() in ['true', 'false']:
+                    task_type = 'fact_checking'
+                else:
+                    task_type = 'qa'
+
+            # 3. 根据类型安全地读取分数
+            if task_type == "fact_checking":
+                # 安全读取 accuracy，默认 False
+                pred_data['correct'] = getattr(r, 'accuracy', 0) == 1.0
+            else:
+                # 安全读取 span_em，默认 False
+                pred_data['correct'] = getattr(r, 'span_em', 0) == 1.0
+
             f.write(json.dumps(pred_data, ensure_ascii=False) + '\n')
     
-    print(f"  💾 Predictions saved: {output_file}")
+    print("保存完成！")
 
 
 def main():
