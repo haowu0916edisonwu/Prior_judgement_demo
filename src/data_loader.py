@@ -349,26 +349,31 @@ class CAREDataLoader:
     
     def _extract_context(self, retrieval: Dict, idx: int) -> str:
         """
-        提取 Top-5 Context 并拼接完整内容
+        提取 Top-10 Context 并按 COLING 原文格式拼接
+        格式: Passage-0 {text}\nPassage-1 {text}...
         """
         context_parts = []
         
-        # 1. 设定 Top-K 为 5 (依据 CARE 实验设置)
-        top_k = 5 
+        # [修改 1] 严格复现 COLING 原文设置：Top-10
+        top_k = 10 
         
         if retrieval.get('topk'):
-            # 2. 获取前 5 个文档
+            # 获取前 K 个文档
             docs = retrieval['topk'][:top_k]
             
-            for doc in docs:
+            for i, doc in enumerate(docs):
                 raw_text = doc.get('text', '')
-                # 3. 提取文档全文 (不要截断字数，只做必要的格式清洗)
+                # 提取文档内容
                 doc_text = self._extract_document_text(raw_text)
+                
                 if doc_text:
-                    context_parts.append(doc_text)
+                    # [修改 2] 增加 Passage-i 前缀 (参考 utils/prompt.py 第 32 行)
+                    # 这一步是为了让模型更清楚地感知到有多条文档
+                    formatted_text = f"Passage-{i} {doc_text}"
+                    context_parts.append(formatted_text)
         
-        # 4. 拼接所有文档全文
-        return "\n\n".join(context_parts)
+        # [修改 3] 使用 \n 拼接 (参考 utils/prompt.py 第 33 行)
+        return "\n".join(context_parts)
     
     @staticmethod
     def _extract_document_text(raw_text: str) -> str:
