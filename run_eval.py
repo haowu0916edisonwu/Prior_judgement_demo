@@ -152,7 +152,7 @@ def main():
     print(f"Model: {args.model_name}")
     print(f"Data: {args.data_root}")
     # [修改点 3] 更新提示信息
-    print(f"Using: test_question_aware.jsonl (Top-5 Context)") 
+    print(f"Using: test_question_aware.jsonl (Top-10 Context)") 
     print(f"Format: answer + topk fields (Fixed)")
     print("=" * 70)
     
