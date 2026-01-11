@@ -2,43 +2,51 @@
 Prompt 模板 - 严格按照 COLING 2025 Table 5 & 6
 """
 
-
 class PromptTemplates:
     """
-    Revised Prompts for Priori Judgment (Retrieval-Augmented Setting)
-    Optimized for Llama-3 to reproduce baseline performance.
+    Strict Reproduction of Prompts from COLING 2025 Table 6
     """
     
     @staticmethod
     def priori_judgment_qa(question: str, context: str) -> str:
-        # 修改原因：防止 Llama-3 输出 "Yes, based on..." 废话导致 Unknown 误判
+        """
+        适用于 NQ, TriviaQA, WebQA
+        来源: COLING 2025 Table 6 (QA & Long-form QA - Retrieval Augmented)
+        """
         return (
-            f"Refer to the following information and your internal knowledge to answer the question.\n"
-            f"If you do not know the answer or the information is insufficient, strictly output \"Unknown\".\n"
-            f"Do not output \"Yes\" or \"No\" at the beginning. Just give the answer directly.\n\n"
-            f"Information:\n{context}\n\n"
-            f"Question: {question}\n"
-            f"Answer:"
+            f"Given the following information:\n"
+            f"{context}\n\n"
+            f"Can you answer the following question based on the given information or your internal knowledge? "
+            f"If yes, you should give a short answer with one or few words, if no, you should answer \"Unknown\".\n\n"
+            f"Question: {question}"
         )
     
     @staticmethod
     def priori_judgment_fact(claim: str, context: str) -> str:
-        # 修改原因：强制输出 True/False，适配 src/metrics.py
+        """
+        适用于 FactKG
+        来源: COLING 2025 Table 6 (Fact Checking - Retrieval Augmented)
+        """
         return (
-            f"Refer to the following information and your internal knowledge to verify the claim.\n"
-            f"Output ONLY \"True\" or \"False\".\n"
-            f"If you are unsure or the information is insufficient, output \"Unknown\".\n\n"
-            f"Information:\n{context}\n\n"
-            f"Claim: {claim}\n"
-            f"Prediction (True/False/Unknown):"
+            f"Given the following information:\n"
+            f"{context}\n\n"
+            f"Can you verify the following claim based on the given information or your internal knowledge? "
+            f"If yes, you should answer True or False, if no, you should answer \"Unknown\".\n\n"
+            f"Claim: {claim}"
         )
     
     @staticmethod
-    def priori_judgment_truthful(question: str) -> str:
-        # 保持简单，防止幻觉
+    def priori_judgment_truthful(question: str, context: str) -> str:
+        """
+        适用于 TruthfulQA
+        注意：CARE 论文中 TruthfulQA 也使用了 RAG 上下文，Prompt 结构与 QA 类似。
+        """
         return (
-            f"Q: {question}\n"
-            f"A: (If you don't know, say Unknown)"
+            f"Given the following information:\n"
+            f"{context}\n\n"
+            f"Can you answer the following question based on the given information or your internal knowledge? "
+            f"If yes, you should give a short answer with one or few words, if no, you should answer \"Unknown\".\n\n"
+            f"Question: {question}"
         )
     
     @staticmethod
