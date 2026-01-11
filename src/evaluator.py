@@ -85,11 +85,18 @@ class PrioriJudgmentEvaluator:
         
         # === Stage 1: Priori Judgment (RAG Setting) ===
         if task_type == "fact_checking":
-            priori_prompt = PromptTemplates.priori_judgment_fact(sample.question, sample.top1_context)
+            # [修改 1] 将 sample.top1_context 改为 sample.context
+            priori_prompt = PromptTemplates.priori_judgment_fact(sample.question, sample.context)
+            
         elif task_type == "long_form":
-            priori_prompt = PromptTemplates.priori_judgment_truthful(sample.question)
+            # [修改 2] 修复 TruthfulQA 逻辑：
+            # (1) 传入 sample.context (之前漏传了)
+            # (2) 变量名更新为 sample.context
+            priori_prompt = PromptTemplates.priori_judgment_truthful(sample.question, sample.context)
+            
         else:
-            priori_prompt = PromptTemplates.priori_judgment_qa(sample.question, sample.top1_context)
+            # [修改 3] 将 sample.top1_context 改为 sample.context
+            priori_prompt = PromptTemplates.priori_judgment_qa(sample.question, sample.context)
         
         raw_priori_output = self.generate(priori_prompt)
         cleaned_priori_output = self.clean_output(raw_priori_output)
