@@ -46,8 +46,10 @@ def test_data_loading():
                 print(f"  ID: {sample.id}")
                 print(f"  Question: {sample.question[:80]}...")
                 print(f"  Answers: {sample.answers}")
-                print(f"  Context length: {len(sample.top1_context)} chars")
-                print(f"  Context preview: {sample.top1_context[:150]}...")
+                # [修改] 这里改为了 sample.context
+                print(f"  Context length: {len(sample.context)} chars")
+                # [修改] 这里改为了 sample.context
+                print(f"  Context preview: {sample.context[:150]}...")
                 
                 results[dataset] = {
                     'status': '✅ 成功',
@@ -56,7 +58,8 @@ def test_data_loading():
                         'id': sample.id,
                         'question': sample.question[:50],
                         'answers': sample.answers,
-                        'context_length': len(sample.top1_context)
+                        # [修改] 这里改为了 sample.context
+                        'context_length': len(sample.context)
                     }
                 }
                 
