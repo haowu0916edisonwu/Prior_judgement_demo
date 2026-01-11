@@ -355,34 +355,28 @@ class CAREDataLoader:
             dataset=dataset_name
         )
     
-    def _extract_top1_context(self, retrieval: Dict, idx: int) -> str:
+    def _extract_context(self, retrieval: Dict, idx: int) -> str:
         """
-        提取 Top-1 context
-        
-        Args:
-            retrieval: 检索结果字典
-            idx: 样本索引（用于调试）
-        
-        Returns:
-            提取的文档内容
+        提取 Top-5 Context 并拼接完整内容
         """
-        top1_ctx = ""
+        context_parts = []
         
-        if retrieval.get('topk') and len(retrieval['topk']) > 0:
-            raw_text = retrieval['topk'][0].get('text', '')
-            
-            # 解析 question_aware 的特殊格式
-            top1_ctx = self._extract_document_text(raw_text)
-            
-            if self.verbose and idx == 0:
-                print(f"\n  🔍 Sample 0 - Top-1 Context:")
-                print(f"     Total contexts available: {len(retrieval['topk'])}")
-                print(f"     Using: topk[0] (Top-1 only)")
-                print(f"     Raw text preview: {raw_text[:200]}...")
-                print(f"     Extracted context length: {len(top1_ctx)} chars")
-                print(f"     Extracted context preview: {top1_ctx[:150]}...")
+        # 1. 设定 Top-K 为 5 (依据 CARE 实验设置)
+        top_k = 5 
         
-        return top1_ctx
+        if retrieval.get('topk'):
+            # 2. 获取前 5 个文档
+            docs = retrieval['topk'][:top_k]
+            
+            for doc in docs:
+                raw_text = doc.get('text', '')
+                # 3. 提取文档全文 (不要截断字数，只做必要的格式清洗)
+                doc_text = self._extract_document_text(raw_text)
+                if doc_text:
+                    context_parts.append(doc_text)
+        
+        # 4. 拼接所有文档全文
+        return "\n\n".join(context_parts)
     
     @staticmethod
     def _extract_document_text(raw_text: str) -> str:
