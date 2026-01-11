@@ -6,6 +6,7 @@ Priori Judgment 评估 - 修正版
 
 import argparse
 import json
+import os
 from pathlib import Path
 
 # 需要将修正后的 data_loader 复制到 src/ 目录
@@ -28,8 +29,11 @@ def debug_single_sample(data_loader, evaluator, dataset):
     print(f"  ID: {sample.id}")
     print(f"  Question: {sample.question[:200]}...")
     print(f"  Answers: {sample.answers}")
-    print(f"  Context length: {len(sample.top1_context)} chars")
-    print(f"  Context preview: {sample.top1_context[:300]}...")
+    
+    # [修改点 1] 将 sample.top1_context 改为 sample.context
+    print(f"  Context length: {len(sample.context)} chars")
+    # [修改点 2] 将 sample.top1_context 改为 sample.context
+    print(f"  Context preview: {sample.context[:300]}...")
     
     print(f"\n🔄 Running Two-Stage Inference...")
     result = evaluator.evaluate_sample(sample)
@@ -147,7 +151,8 @@ def main():
     print("=" * 70)
     print(f"Model: {args.model_name}")
     print(f"Data: {args.data_root}")
-    print(f"Using: test_question_aware.jsonl (Top-1 only)")
+    # [修改点 3] 更新提示信息
+    print(f"Using: test_question_aware.jsonl (Top-5 Context)") 
     print(f"Format: answer + topk fields (Fixed)")
     print("=" * 70)
     
