@@ -322,35 +322,28 @@ class CAREDataLoader:
     ) -> Sample:
         """
         创建统一的 Sample 对象
-        
-        Args:
-            question: 问题字典
-            retrieval: 检索字典
-            dataset_name: 数据集名称
-            idx: 样本索引
-        
-        Returns:
-            Sample 对象
         """
-        # 提取 ID（优先使用问题文件的 id，如果没有则使用索引）
+        # 提取 ID
         sample_id = str(question.get('id', str(idx)))
-        
+    
         # 提取问题文本
         question_text = question.get('question', question.get('claim', ''))
-        
-        # 提取答案（关键：字段名是 answer 不是 answers）
+    
+        # 提取答案
         answers = question.get('answer', question.get('answers', []))
         if not isinstance(answers, list):
             answers = [str(answers)]
-        
-        # 提取 Top-1 context
-        top1_ctx = self._extract_top1_context(retrieval, idx)
-        
+    
+        # [修改点 1] 调用改名后的 _extract_context 方法 (原为 _extract_top1_context)
+        # 这里的 _extract_context 是你之前已经改好的那个提取 Top-5 的方法
+        context_text = self._extract_context(retrieval, idx)
+    
         return Sample(
             id=sample_id,
             question=question_text,
             answers=answers,
-            top1_context=top1_ctx,
+            # [修改点 2] 字段名改为 context (原为 top1_context)
+            context=context_text,
             dataset=dataset_name
         )
     
