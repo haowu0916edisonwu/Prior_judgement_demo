@@ -22,11 +22,10 @@ from dataclasses import dataclass
 
 @dataclass
 class Sample:
-    """统一样本格式"""
     id: str
     question: str
     answers: List[str]
-    top1_context: str
+    context: str      # <--- 改这就行，原为 top1_context
     dataset: str
 
 
