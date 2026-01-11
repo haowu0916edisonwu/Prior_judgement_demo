@@ -11,13 +11,15 @@ class PromptTemplates:
     def priori_judgment_qa(question: str, context: str) -> str:
         """
         适用于 NQ, TriviaQA, WebQA
-        来源: COLING 2025 Table 6 (QA & Long-form QA - Retrieval Augmented)
+        来源: COLING 2025 原文代码 (utils/prompt.py - 'ra' key)
+        特点: 逗号连接，全小写 if yes/no
         """
         return (
-            f"Given the following information:\n"
-            f"{context}\n\n"
-            f"Can you answer the following question based on the given information or your internal knowledge? "
-            f"If yes, you should give a short answer with one or few words, if no, you should answer \"Unknown\".\n\n"
+            f"Given the following information: \n" # 注意原文这里是 \n 不是 \n\n
+            f"{context}\n"
+            f"Can you answer the following question based on the given information or your internal knowledge, " # 逗号
+            f"if yes, you should give a short answer with one or few words, " # 逗号
+            f"if no, you should answer \"Unknown\".\n" # 句号
             f"Question: {question}"
         )
     
