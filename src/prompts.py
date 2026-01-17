@@ -1,65 +1,53 @@
 """
-Prompt 模板 - 严格按照 COLING 2025 Table 5 & 6
+Prompt 模板 - 混合 SOTA 版 (Hybrid V5 - Precision)
+---------------------------------------------------------
+1. QA (NQ/WebQA/TriviaQA): CARE 格式 ("If yes, give a short answer...")
+2. TruthfulQA: COLING 格式 ("you should give a detailed answer")
+3. FactKG: COLING 原版。
 """
 
 class PromptTemplates:
-    """
-    Strict Reproduction of Prompts from COLING 2025 Table 6
-    """
     
     @staticmethod
     def priori_judgment_qa(question: str, context: str) -> str:
-        """
-        适用于 NQ, TriviaQA, WebQA
-        来源: COLING 2025 原文代码 (utils/prompt.py - 'ra' key)
-        特点: 逗号连接，全小写 if yes/no
-        """
+        """[CARE EMNLP 2025] 适用于 NQ, TriviaQA, WebQA"""
         return (
-            f"Given the following information: \n" # 注意原文这里是 \n 不是 \n\n
+            f"Given the following information:\n"
             f"{context}\n"
-            f"Can you answer the following question based on the given information or your internal knowledge, " # 逗号
-            f"if yes, you should give a short answer with one or few words, " # 逗号
-            f"if no, you should answer \"Unknown\".\n" # 句号
-            f"Question: {question}"
+            f"Can you answer the following question based on the given information or your internal knowledge? "
+            f"If yes, give a short answer with one or few words. "
+            f"If not, answer \"Unknown\".\n"
+            f"Question: {question}\n"
+            f"Answer:" 
         )
-    
+
+    @staticmethod
+    def priori_judgment_truthful(question: str, context: str) -> str:
+        """[COLING 2025 回滚版] 适用于 TruthfulQA"""
+        return (
+            f"Given the following information: \n" 
+            f"{context}\n"
+            f"Can you answer the following question based on the given information or your internal knowledge, " 
+            f"if yes, you should give a detailed answer, " 
+            f"if no, you should answer \"Unknown\".\n" 
+            f"Question: {question}\n"
+            f"Answer:" 
+        )
+
     @staticmethod
     def priori_judgment_fact(claim: str, context: str) -> str:
-        """
-        适用于 FactKG
-        来源: COLING 2025 Table 6 (Fact Checking - Retrieval Augmented)
-        """
+        """[COLING 2025 原版] 适用于 FactKG"""
         return (
             f"Given the following information:\n"
             f"{context}\n\n"
             f"Can you verify the following claim based on the given information or your internal knowledge? "
             f"If yes, you should answer True or False, if no, you should answer \"Unknown\".\n\n"
-            f"Claim: {claim}"
-        )
-    
-    @staticmethod
-    def priori_judgment_truthful(question: str, context: str) -> str:
-        """
-        适用于 TruthfulQA
-        来源: COLING 2025 原文代码 (utils/prompt.py - 'ra' key)
-        特点: 逗号连接，全小写 if yes/no (与 QA 保持一致)
-        """
-        return (
-            f"Given the following information: \n" # 单换行
-            f"{context}\n"
-            f"Can you answer the following question based on the given information or your internal knowledge, " # 逗号
-            f"if yes, you should give a short answer with one or few words, " # 逗号
-            f"if no, you should answer \"Unknown\".\n" # 句号
-            f"Question: {question}"
+            f"Claim: {claim}\n"
+            f"Answer:"
         )
         
     @staticmethod
     def closedbook_qa_short(question: str) -> str:
-        """
-        Closed-book for short-form QA
-        
-        来源：COLING 2025 Table 5 - Open-Domain QA Closed-Book
-        """
         return (
             f"Answer the questions:\n"
             f"Question: {question}?\n"
@@ -68,11 +56,6 @@ class PromptTemplates:
     
     @staticmethod
     def closedbook_qa_long(question: str) -> str:
-        """
-        Closed-book for long-form QA
-        
-        来源：COLING 2025 Table 5 - Long-form QA Closed-Book
-        """
         return (
             f"Answer the questions:\n"
             f"Question: {question}\n"
@@ -81,11 +64,6 @@ class PromptTemplates:
     
     @staticmethod
     def closedbook_fact(claim: str) -> str:
-        """
-        Closed-book for fact checking
-        
-        来源：COLING 2025 Table 5 - Fact Checking Closed-Book
-        """
         return (
             f"Verify the following claims with \"True\" or \"False\":\n"
             f"Claim: {claim}\n"

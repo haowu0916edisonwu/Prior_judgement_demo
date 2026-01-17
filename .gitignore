@@ -1,7 +1,8 @@
 data_care/
-results/
 *.pyc
-__pycache__/
 .cache/
 *.log
 hf_cache/
+results/
+results_v27/
+__pycache__/
